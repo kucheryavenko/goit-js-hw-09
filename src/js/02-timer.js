@@ -1,3 +1,48 @@
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+
+const inputEl = document.querySelector('#datetime-picker');
+const btnStartEl = document.querySelector('button[data-start]');
+
+const DELAY = 1000;
+let intervalID = null;
+let date = null;
+
+const options = {
+  enableTime: true,
+  time_24hr: true,
+  defaultDate: new Date(),
+  minuteIncrement: 1,
+    onClose(selectedDates) {
+        date = selectedDates[0];
+  },
+};
+
+
+flatpickr('#datetime-picker', options);
+
+const timer = {
+    start() {
+        const startTime = Date.now();
+    
+
+        const intervalID = setInterval(() => {
+            const currentTime = Date.now();
+            const dateDate = date - currentTime;
+            console.log(dateDate);
+
+            if (dateDate <= 0) {
+                clearInterval(intervalID);
+            }
+        }, DELAY);
+
+
+    },
+};
+
+timer.start();
+
 // import flatpickr from 'flatpickr'; // Импорт библиотеки "flatpickr", описан в документации
 // import 'flatpickr/dist/flatpickr.min.css'; // Дополнительный импорт стилей, для библиотеки "flatpickr"
 // import { Notify } from 'notiflix/build/notiflix-notify-aio'; // Импорт библиотеки "notify"
@@ -82,3 +127,4 @@
 // function offDisabledBtnStar() {
 //     btnStartEl.disabled = false;
 // }
+
