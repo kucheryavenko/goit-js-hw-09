@@ -16,24 +16,14 @@ function onSubmit(evt) {
     const stepValue = Number(stepEl.value);
     const amountValue = Number(amountEl.value);
     let delayValue = Number(delayEl.value);
-    let amountInterval = 0;
 
-    const intervalId = setInterval(() => {
-
-        amountInterval += 1;
-
-        if (amountValue < amountInterval) {
-            clearInterval(intervalId);
-            return;
-        }
-
-        createPromise(amountInterval, delayValue)
+    for (let i = 1; i <= amountValue; i += 1) {
+       createPromise(i, delayValue)
             .then(onMakeFulfilled)
-            .catch(onMakeRejected);
+           .catch(onMakeRejected);
         
         delayValue += stepValue;
-
-    }, delayValue)
+    }
 }
 
 // Ф-ция создает и возвращает промисы
