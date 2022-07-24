@@ -1,130 +1,97 @@
+// Подключаем библиотеки
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
-const inputEl = document.querySelector('#datetime-picker');
-const btnStartEl = document.querySelector('button[data-start]');
+// Выносим рефы
+const refs = {
+    input: document.querySelector('#datetime-picker'),
+    btnStart: document.querySelector('button[data-start]'),
+    days: document.querySelector('span[data-days]'),
+    hours: document.querySelector('span[data-hours]'),
+    minutes: document.querySelector('span[data-minutes]'),
+    seconds: document.querySelector('span[data-seconds]'),
+}
 
+// Выносим переменные
 const DELAY = 1000;
 let intervalID = null;
-let date = null;
+let finishTime = null;
 
+// Создаём объект параметров для flatpickr
 const options = {
   enableTime: true,
   time_24hr: true,
   defaultDate: new Date(),
   minuteIncrement: 1,
     onClose(selectedDates) {
-        date = selectedDates[0];
+        finishTime = selectedDates[0];
+
+      if (finishTime <= Date.now()) {
+        refs.btnStart.disabled = true;
+        Notify.failure('Please choose a date in the future');
+        return;
+        }
+      refs.btnStart.disabled = false;
   },
 };
 
-
+// Запускаем flatpickr  
 flatpickr('#datetime-picker', options);
 
-const timer = {
-    start() {
-        const startTime = Date.now();
+// По дефолту назначаем кнопку btnStart on disabled 
+refs.btnStart.disabled = true;
+
+// Вешаем слушетеля на btnStart и запускаем ф-цию timerStart
+refs.btnStart.addEventListener('click', timerStart);
+
+// Ф-ция Таймер
+function timerStart() {
+    refs.input.disabled = true;
+    refs.btnStart.disabled = true;
+
+    intervalID = setInterval(() => {
+        const currentTime = Date.now();
+        const deltaTime = finishTime - currentTime;
     
+        if (deltaTime <= 0) {
+            clearInterval(intervalID);
+            Notify.success('The time is up, the day has come!');
+        } else {
+            const convertTime = convertMs(deltaTime);
+            renderTime(convertTime, refs);
+        }
+    }, DELAY); 
+}
 
-        const intervalID = setInterval(() => {
-            const currentTime = Date.now();
-            const dateDate = date - currentTime;
-            console.log(dateDate);
+// Ф-ция конвертирует время
+function convertMs(ms) {
+  // Number of milliseconds per unit of time
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
 
-            if (dateDate <= 0) {
-                clearInterval(intervalID);
-            }
-        }, DELAY);
+  // Remaining days
+  const days = addLeadingZero(Math.floor(ms / day));
+  // Remaining hours
+  const hours = addLeadingZero(Math.floor((ms % day) / hour));
+  // Remaining minutes
+  const minutes = addLeadingZero(Math.floor(((ms % day) % hour) / minute));
+  // Remaining seconds
+  const seconds = addLeadingZero(Math.floor((((ms % day) % hour) % minute) / second));
 
+  return { days, hours, minutes, seconds };
+}
 
-    },
-};
+// Ф-ция добавляет ноль перед значением времени, если число однозначное  
+function addLeadingZero(value) {
+    return String(value).padStart(2, '0');
+}
 
-timer.start();
-
-// import flatpickr from 'flatpickr'; // Импорт библиотеки "flatpickr", описан в документации
-// import 'flatpickr/dist/flatpickr.min.css'; // Дополнительный импорт стилей, для библиотеки "flatpickr"
-// import { Notify } from 'notiflix/build/notiflix-notify-aio'; // Импорт библиотеки "notify"
-
-// // Находим наши элементы и создаём переменные
-// const inputEl = document.querySelector('#datetime-picker');
-// const btnStartEl = document.querySelector('button[data-start]');
-// const DELAY = 1000;
-// let intervalID = null;
-
-// btnStartEl.addEventListener('click', onFutureDate)
-// // Кнопка Start по дефолту disabled, запускаем ф-цию
-// onDisabledBtnStar(); 
-
-// // Второй аргумент функции "flatpickr", необязательный объект параметров
-// const options = {
-//   enableTime: true,
-//   time_24hr: true,
-//   defaultDate: new Date(),
-//   minuteIncrement: 1,
-//   onClose(selectedDates) {
-//     // console.log(selectedDates[0]);
-//       if (selectedDates[0] < Date.now()) {
-//         onDisabledBtnStar();
-//         Notify.failure('Please choose a date in the future');
-//         return;
-//     }
-//       offDisabledBtnStar();
-//   },
-// };
-
-// // Запускаем библиотеку "flatpickr"
-// flatpickr(inputEl, options);
-
-// function onFutureDate() {
-//     const futureDate = new Date(inputEl.value).getTime();
-//     intervalID = setInterval(() => {
-//         const currentDate = Date.now();
-
-//         const deltaTime = futureDate - currentDate;
-//         console.log(deltaTime);
-
-//     }, DELAY);
-
-//     // if (deltaTime < 0) {
-//     //    clearInterval(intervalID); 
-//     // }
-// }
-
-// // function offFutureDate() {
-// //     if (deltaTime < 0) {
-// //        clearInterval(intervalID); 
-// //     }
-// // }
-
-// // Ф-ция для подсчета значений, где ms разница между конечной и текущей датой в миллисекундах
-// function convertMs(ms) {
-//   // Number of milliseconds per unit of time
-//   const second = 1000;
-//   const minute = second * 60;
-//   const hour = minute * 60;
-//   const day = hour * 24;
-
-//   // Remaining days
-//   const days = Math.floor(ms / day);
-//   // Remaining hours
-//   const hours = Math.floor((ms % day) / hour);
-//   // Remaining minutes
-//   const minutes = Math.floor(((ms % day) % hour) / minute);
-//   // Remaining seconds
-//   const seconds = Math.floor((((ms % day) % hour) % minute) / second);
-
-//   return { days, hours, minutes, seconds };
-// }
-
-// // Ф-ция активирует disabled на кнопке Start
-// function onDisabledBtnStar() {
-//     btnStartEl.disabled = true;
-// }
-
-// // Ф-ция деактивирует disabled на кнопке Start
-// function offDisabledBtnStar() {
-//     btnStartEl.disabled = false;
-// }
-
+// Ф-ция отрисовует время
+function renderTime(timeObj, refsObj) {
+    Object.keys(timeObj).forEach(key => {
+        refsObj[key].textContent = timeObj[key];
+    });
+}
